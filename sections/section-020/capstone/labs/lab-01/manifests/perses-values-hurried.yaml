@@ -1,0 +1,15 @@
+# Values someone applied in a hurry.
+config:
+  security:
+    readonly: true
+  provisioning:
+    folders:
+      - /etc/perses/provisioning-files
+volumes:
+  - name: provisioning-files
+    configMap:
+      name: perses-provisioning
+volumeMounts:
+  - name: provisioning-files
+    mountPath: /etc/perses/provisoning-files
+    readOnly: true

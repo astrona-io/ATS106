@@ -1,0 +1,25 @@
+# Resources Perses loads at start from /etc/perses/provisioning-files.
+# Lab-only passwords. Perses hashes a native password before it stores it.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: perses-provisioning
+  namespace: perses
+data:
+  users.json: |
+    [
+      {"kind": "User", "metadata": {"name": "admin"}, "spec": {"nativeProvider": {"password": "perses-admin"}}},
+      {"kind": "User", "metadata": {"name": "dana"}, "spec": {"nativeProvider": {"password": "dana-password"}}}
+    ]
+  admin.json: |
+    [
+      {"kind": "GlobalRole", "metadata": {"name": "admin"}, "spec": {"permissions": [{"actions": ["*"], "scopes": ["*"]}]}},
+      {"kind": "GlobalRoleBinding", "metadata": {"name": "admin"}, "spec": {"role": "admin", "subjects": [{"kind": "User", "name": "admin"}]}}
+    ]
+  projects.json: |
+    [
+      {"kind": "Project", "metadata": {"name": "inventory"}, "spec": {}},
+      {"kind": "Project", "metadata": {"name": "billing"}, "spec": {}},
+      {"kind": "Datasource", "metadata": {"name": "prometheus", "project": "inventory"}, "spec": {"default": true, "plugin": {"kind": "PrometheusDatasource", "spec": {"proxy": {"kind": "HTTPProxy", "spec": {"url": "http://prometheus.observability:9090"}}}}}},
+      {"kind": "Datasource", "metadata": {"name": "prometheus", "project": "billing"}, "spec": {"default": true, "plugin": {"kind": "PrometheusDatasource", "spec": {"proxy": {"kind": "HTTPProxy", "spec": {"url": "http://prometheus.observability:9090"}}}}}}
+    ]

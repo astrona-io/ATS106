@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: perses-provisioning
+  namespace: perses
+data:
+  project.json: |
+    {"kind": "Project", "metadata": {"name": "inventory"}, "spec": {}}
+  globaldatasource.json: |
+    {"kind": "GlobalDatasource", "metadata": {"name": "prometheus-global"}, "spec": {"default": true, "plugin": {"kind": "PrometheusDatasource", "spec": {"proxy": {"kind": "HTTPProxy", "spec": {"url": "http://prometheus.observability:9090"}}}}}}

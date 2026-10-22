@@ -1,0 +1,60 @@
+# Give A User Edit Rights On One Project
+# Astrona graded lab. Schema: internal/config.LabConfig.
+
+metadata:
+  name: "ats-106-lab-030-01"
+  docs:
+    guide: "solution.md"
+    solution: "solution.md"
+    question: "question.md"
+    examQuestion: "question.md"
+    prerequisites: "prerequisites.md"
+
+bootstrap:
+  init:
+    - name: "install-perses"
+      description: "Installs Helm 3.22.1, percli v0.54.0, Prometheus, the tester pod and Perses v0.54.0 (chart 0.23.3)"
+      type: "file"
+      source: "bootstrap/01-install-perses.sh"
+    - name: "ats-106-lab-030-01-setup"
+      description: "Creates the starting state the task works from"
+      type: "file"
+      source: "bootstrap/02-seed-state.sh"
+  manifests:
+    - name: "lab-start"
+      description: "Prometheus and the tester pod (namespace observability)."
+      type: "file"
+      source: "manifests/lab-start.yaml"
+
+testing:
+  init:
+    - name: "wait-for-perses"
+      description: "Waits until Perses answers from the tester pod"
+      type: "file"
+      source: "testing/wait-for-perses.sh"
+    - name: "reference-solution"
+      description: "The remediation a correct learner performs; used by `astrona test`"
+      type: "file"
+      source: "solution/apply.sh"
+
+validation:
+  scripts:
+    - name: "validate-auth-still-on"
+      description: "Confirms anonymous requests are still refused"
+      type: "file"
+      source: "validation/validate-auth-still-on.sh"
+    - name: "validate-dana-edits-inventory"
+      description: "Confirms dana can create a dashboard in inventory"
+      type: "file"
+      source: "validation/validate-dana-edits-inventory.sh"
+    - name: "validate-dana-not-billing"
+      description: "Confirms dana cannot create a dashboard in billing"
+      type: "file"
+      source: "validation/validate-dana-not-billing.sh"
+    - name: "validate-no-global-binding"
+      description: "Confirms no GlobalRoleBinding gives dana access"
+      type: "file"
+      source: "validation/validate-no-global-binding.sh"
+
+teardown:
+  keepCluster: false

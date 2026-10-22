@@ -1,0 +1,64 @@
+# Make A Perses Install Writable And Restart-Safe
+# Astrona graded capstone. Schema: internal/config.LabConfig.
+
+metadata:
+  name: "ats-106-capstone-020"
+  docs:
+    guide: "solution.md"
+    solution: "solution.md"
+    question: "question.md"
+    examQuestion: "question.md"
+    prerequisites: "prerequisites.md"
+
+bootstrap:
+  init:
+    - name: "install-perses"
+      description: "Installs Helm 3.22.1, percli v0.54.0, Prometheus, the tester pod and Perses v0.54.0 (chart 0.23.3)"
+      type: "file"
+      source: "bootstrap/01-install-perses.sh"
+    - name: "ats-106-capstone-020-setup"
+      description: "Creates the starting state the task works from"
+      type: "file"
+      source: "bootstrap/02-seed-state.sh"
+  manifests:
+    - name: "lab-start"
+      description: "Prometheus and the tester pod (namespace observability)."
+      type: "file"
+      source: "manifests/lab-start.yaml"
+
+testing:
+  init:
+    - name: "wait-for-perses"
+      description: "Waits until Perses answers from the tester pod"
+      type: "file"
+      source: "testing/wait-for-perses.sh"
+    - name: "reference-solution"
+      description: "The remediation a correct learner performs; used by `astrona test`"
+      type: "file"
+      source: "solution/apply.sh"
+
+validation:
+  scripts:
+    - name: "validate-writable"
+      description: "Confirms Perses accepts a new project"
+      type: "file"
+      source: "validation/validate-writable.sh"
+    - name: "validate-provisioning-mounted"
+      description: "Confirms the ConfigMap is mounted in a folder Perses provisions from"
+      type: "file"
+      source: "validation/validate-provisioning-mounted.sh"
+    - name: "validate-fixed-at-source"
+      description: "Confirms the provisioned GlobalDatasource file points at port 9090"
+      type: "file"
+      source: "validation/validate-fixed-at-source.sh"
+    - name: "validate-survives-restart"
+      description: "Confirms the project and the GlobalDatasource come back after a restart"
+      type: "file"
+      source: "validation/validate-survives-restart.sh"
+    - name: "validate-global-proxy"
+      description: "Confirms a query through the GlobalDatasource prometheus-global returns data"
+      type: "file"
+      source: "validation/validate-global-proxy.sh"
+
+teardown:
+  keepCluster: false

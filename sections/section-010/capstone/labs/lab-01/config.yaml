@@ -1,0 +1,60 @@
+# Untangle Datasources Across Three Scopes
+# Astrona graded capstone. Schema: internal/config.LabConfig.
+
+metadata:
+  name: "ats-106-capstone-010"
+  docs:
+    guide: "solution.md"
+    solution: "solution.md"
+    question: "question.md"
+    examQuestion: "question.md"
+    prerequisites: "prerequisites.md"
+
+bootstrap:
+  init:
+    - name: "install-perses"
+      description: "Installs Helm 3.22.1, percli v0.54.0, Prometheus, the tester pod and Perses v0.54.0 (chart 0.23.3)"
+      type: "file"
+      source: "bootstrap/01-install-perses.sh"
+    - name: "ats-106-capstone-010-setup"
+      description: "Creates the starting state the task works from"
+      type: "file"
+      source: "bootstrap/02-seed-state.sh"
+  manifests:
+    - name: "lab-start"
+      description: "Prometheus and the tester pod (namespace observability)."
+      type: "file"
+      source: "manifests/lab-start.yaml"
+
+testing:
+  init:
+    - name: "wait-for-perses"
+      description: "Waits until Perses answers from the tester pod"
+      type: "file"
+      source: "testing/wait-for-perses.sh"
+    - name: "reference-solution"
+      description: "The remediation a correct learner performs; used by `astrona test`"
+      type: "file"
+      source: "solution/apply.sh"
+
+validation:
+  scripts:
+    - name: "validate-global-datasource"
+      description: "Confirms the GlobalDatasource prometheus returns data through the proxy"
+      type: "file"
+      source: "validation/validate-global-datasource.sh"
+    - name: "validate-project-datasource"
+      description: "Confirms the inventory datasource prometheus returns data through the proxy"
+      type: "file"
+      source: "validation/validate-project-datasource.sh"
+    - name: "validate-dashboard-scope"
+      description: "Confirms incident-overview has no broken dashboard-scoped datasource named prometheus"
+      type: "file"
+      source: "validation/validate-dashboard-scope.sh"
+    - name: "validate-not-recreated"
+      description: "Confirms both dashboards keep their original creation time"
+      type: "file"
+      source: "validation/validate-not-recreated.sh"
+
+teardown:
+  keepCluster: false

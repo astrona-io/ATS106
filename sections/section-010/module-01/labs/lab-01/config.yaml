@@ -1,0 +1,60 @@
+# Repair A Datasource And The Dashboard That Uses It
+# Astrona graded lab. Schema: internal/config.LabConfig.
+
+metadata:
+  name: "ats-106-lab-010-01"
+  docs:
+    guide: "solution.md"
+    solution: "solution.md"
+    question: "question.md"
+    examQuestion: "question.md"
+    prerequisites: "prerequisites.md"
+
+bootstrap:
+  init:
+    - name: "install-perses"
+      description: "Installs Helm 3.22.1, percli v0.54.0, Prometheus, the tester pod and Perses v0.54.0 (chart 0.23.3)"
+      type: "file"
+      source: "bootstrap/01-install-perses.sh"
+    - name: "ats-106-lab-010-01-setup"
+      description: "Creates the starting state the task works from"
+      type: "file"
+      source: "bootstrap/02-seed-state.sh"
+  manifests:
+    - name: "lab-start"
+      description: "Prometheus and the tester pod (namespace observability)."
+      type: "file"
+      source: "manifests/lab-start.yaml"
+
+testing:
+  init:
+    - name: "wait-for-perses"
+      description: "Waits until Perses answers from the tester pod"
+      type: "file"
+      source: "testing/wait-for-perses.sh"
+    - name: "reference-solution"
+      description: "The remediation a correct learner performs; used by `astrona test`"
+      type: "file"
+      source: "solution/apply.sh"
+
+validation:
+  scripts:
+    - name: "validate-datasource-url"
+      description: "Confirms the datasource prometheus points at the Prometheus Service on port 9090"
+      type: "file"
+      source: "validation/validate-datasource-url.sh"
+    - name: "validate-proxy-query"
+      description: "Confirms a query for up through the datasource proxy returns data"
+      type: "file"
+      source: "validation/validate-proxy-query.sh"
+    - name: "validate-dashboard-reference"
+      description: "Confirms every query of service-overview names a datasource that exists and still asks for up"
+      type: "file"
+      source: "validation/validate-dashboard-reference.sh"
+    - name: "validate-not-recreated"
+      description: "Confirms the datasource and the dashboard were updated, not deleted and created again"
+      type: "file"
+      source: "validation/validate-not-recreated.sh"
+
+teardown:
+  keepCluster: false

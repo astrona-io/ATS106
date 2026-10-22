@@ -1,0 +1,274 @@
+# Course manifest for ATS106 - Fundamentals, Architecture & percli Setup (Perses).
+#
+# One entry per section under `modules:`. Each section lists, in order: its
+# README, then for each module the landing page (course.md), its parts
+# (course-0N-*.md), and right after the part a lab tests, the lab's
+# question.md reading and the `type: lab` entry. The module's summary page
+# comes last. The section capstone closes the section. Playgrounds are not
+# listed: the landing page's playground marker shows them. solution.md is
+# never listed.
+#
+# Every `path:` is relative to this file.
+
+training:
+  id: ATS106
+  title: "Perses: Fundamentals, Architecture & percli Setup"
+  maturity: draft
+  description: >
+    Training material covering the Fundamentals, Architecture & percli Setup
+    domain of the Perses training path: what Perses is and where it fits, the
+    resource model of projects, dashboards, datasources and their scopes, the
+    datasource proxy, running and configuring Perses with the Helm chart,
+    provisioning resources at start, the percli command-line tool, and
+    authentication with roles and role bindings. Each module pairs a layered
+    reader with an ungraded hands-on playground and a graded practice lab.
+    Each section closes with an integration capstone.
+    Written for Perses v0.54.0.
+
+  certification:
+    name: Perses
+    code: PERSES
+    provider: Astrona
+    domain: Fundamentals, Architecture & percli Setup
+    weight: 10
+
+modules:
+
+  - id: module-intro
+    title: "Introduction"
+    description: >
+      Start here. What this course trains you to do, how it is laid out, how
+      to get your machine ready with the astrona command-line tool, how the
+      content is written and checked, who maintains it, and how to report a
+      mistake.
+
+    content:
+      - type: reading
+        title: Introduction
+        path: sections/intro/README.md
+      - type: reading
+        title: "Welcome To The Course"
+        path: sections/intro/course-01-welcome.md
+      - type: reading
+        title: "Get Your Machine Ready"
+        path: sections/intro/course-02-get-your-machine-ready.md
+      - type: reading
+        title: "How This Course Is Made"
+        path: sections/intro/course-03-how-this-course-is-made.md
+
+  - id: module-010
+    title: "What Perses Is And Its Resource Model"
+    description: >
+      What Perses is and where it fits among CNCF projects, the open dashboard
+      specification, the server against the embedded npm packages, the
+      resources Perses stores and the scopes they live in, and the
+      datasource proxy that carries every query.
+
+    content:
+      - type: reading
+        title: Section Overview
+        path: sections/section-010/README.md
+
+      - type: reading
+        title: "Find Your Way Around Perses"
+        path: sections/section-010/module-01/course.md
+      - type: reading
+        title: "What Perses Is And Where It Fits"
+        path: sections/section-010/module-01/course-01-what-perses-is.md
+      - type: reading
+        title: "Projects, Resources And Scopes"
+        path: sections/section-010/module-01/course-02-projects-resources-and-scopes.md
+      - type: reading
+        title: "A First Dashboard And The Datasource Proxy"
+        path: sections/section-010/module-01/course-03-first-dashboard-and-the-proxy.md
+      - type: reading
+        title: Question
+        path: sections/section-010/module-01/labs/lab-01/question.md
+      - type: lab
+        title: "Repair A Datasource And The Dashboard That Uses It Lab"
+        path: sections/section-010/module-01/labs/lab-01
+        difficulty: beginner
+        estimated_duration: 20m
+        topic: resources
+        task_kind: troubleshooting
+        tags: [project, datasource, dashboard, percli, percli-apply, api]
+        learning_goals:
+          - Find why a panel gets no data by reading the datasource and the dashboard with percli
+          - Fix the datasource URL and the dashboard's datasource reference without recreating either
+          - Prove the fix with a query through the Perses datasource proxy
+        resources:
+          - name: "Datasource"
+            url: https://perses.dev/perses/docs/concepts/datasource/
+          - name: "Proxy"
+            url: https://perses.dev/perses/docs/concepts/proxy/
+          - name: "Dashboard API"
+            url: https://perses.dev/perses/docs/api/dashboard/
+      - type: reading
+        title: Summary
+        path: sections/section-010/module-01/course-04-summary.md
+
+      - type: reading
+        title: Question
+        path: sections/section-010/capstone/labs/lab-01/question.md
+      - type: lab
+        title: "Untangle Datasources Across Three Scopes Capstone"
+        path: sections/section-010/capstone/labs/lab-01
+        difficulty: intermediate
+        estimated_duration: 30m
+        topic: resources
+        task_kind: troubleshooting
+        tags: [global-datasource, datasource, dashboard, project, percli-get, api]
+        learning_goals:
+          - Work out which datasource a dashboard really uses when the same name exists at three scopes
+          - Fix the global, project and dashboard datasources so every query reaches Prometheus
+          - Prove both projects get data through the proxy without recreating any dashboard
+        resources:
+          - name: "Datasource and variable scopes"
+            url: https://perses.dev/perses/docs/concepts/datasource-and-variable-scopes/
+          - name: "Datasource API"
+            url: https://perses.dev/perses/docs/api/datasource/
+
+  - id: module-020
+    title: "Running And Configuring Perses"
+    description: >
+      The ways to run Perses (binary, container, Helm chart), the configuration
+      file and its environment variables, read-only mode, and provisioning
+      resources from files so they come back after a restart.
+
+    content:
+      - type: reading
+        title: Section Overview
+        path: sections/section-020/README.md
+
+      - type: reading
+        title: "Configure Perses With Its Helm Chart"
+        path: sections/section-020/module-01/course.md
+      - type: reading
+        title: "Ways To Run Perses"
+        path: sections/section-020/module-01/course-01-ways-to-run-perses.md
+      - type: reading
+        title: "The Configuration File"
+        path: sections/section-020/module-01/course-02-the-configuration-file.md
+      - type: reading
+        title: "Provisioning Resources At Start"
+        path: sections/section-020/module-01/course-03-provisioning-resources.md
+      - type: reading
+        title: Question
+        path: sections/section-020/module-01/labs/lab-01/question.md
+      - type: lab
+        title: "Provision A Project And A Global Datasource Lab"
+        path: sections/section-020/module-01/labs/lab-01
+        difficulty: intermediate
+        estimated_duration: 25m
+        topic: configuration
+        task_kind: build
+        tags: [provisioning, helm-chart, config-file, global-datasource, project]
+        learning_goals:
+          - Mount a ConfigMap of resources into Perses through the Helm chart values
+          - Add the folder to the provisioning configuration
+          - Prove the resources come back after the Perses pod restarts with an empty database
+        resources:
+          - name: "Provisioning"
+            url: https://perses.dev/perses/docs/configuration/provisioning/
+          - name: "Configuration"
+            url: https://perses.dev/perses/docs/configuration/configuration/
+          - name: "Helm chart installation"
+            url: https://perses.dev/helm-charts/docs/installation/
+      - type: reading
+        title: Summary
+        path: sections/section-020/module-01/course-04-summary.md
+
+      - type: reading
+        title: Question
+        path: sections/section-020/capstone/labs/lab-01/question.md
+      - type: lab
+        title: "Make A Perses Install Writable And Restart-Safe Capstone"
+        path: sections/section-020/capstone/labs/lab-01
+        difficulty: intermediate
+        estimated_duration: 30m
+        topic: configuration
+        task_kind: troubleshooting
+        tags: [config-file, provisioning, helm-chart, global-datasource, database]
+        learning_goals:
+          - Find why Perses refuses every change and why provisioned resources never appear
+          - Fix the Helm values and the provisioned files, not the database
+          - Prove the server accepts changes and serves working provisioned resources after a restart
+        resources:
+          - name: "Configuration"
+            url: https://perses.dev/perses/docs/configuration/configuration/
+          - name: "Provisioning"
+            url: https://perses.dev/perses/docs/configuration/provisioning/
+
+  - id: module-030
+    title: "percli, Authentication And Authorization"
+    description: >
+      Everyday percli: logging in, selecting a project, getting, describing,
+      applying, deleting and linting resources. Then switching authentication
+      on with native users, and giving users exactly the access they need
+      with roles and role bindings.
+
+    content:
+      - type: reading
+        title: Section Overview
+        path: sections/section-030/README.md
+
+      - type: reading
+        title: "Secure Perses And Work With percli"
+        path: sections/section-030/module-01/course.md
+      - type: reading
+        title: "Working With percli"
+        path: sections/section-030/module-01/course-01-working-with-percli.md
+      - type: reading
+        title: "Turning On Authentication"
+        path: sections/section-030/module-01/course-02-turning-on-authentication.md
+      - type: reading
+        title: "Roles And Role Bindings"
+        path: sections/section-030/module-01/course-03-roles-and-role-bindings.md
+      - type: reading
+        title: Question
+        path: sections/section-030/module-01/labs/lab-01/question.md
+      - type: lab
+        title: "Give A User Edit Rights On One Project Lab"
+        path: sections/section-030/module-01/labs/lab-01
+        difficulty: intermediate
+        estimated_duration: 20m
+        topic: rbac
+        task_kind: build
+        tags: [role, role-binding, native-user, authentication, percli-login, percli-apply]
+        learning_goals:
+          - Write a Role that allows dashboard changes in one project
+          - Bind the Role to a native user with a RoleBinding
+          - Prove the user can change dashboards in that project and nowhere else
+        resources:
+          - name: "Authorization"
+            url: https://perses.dev/perses/docs/concepts/authorization/
+          - name: "Role API"
+            url: https://perses.dev/perses/docs/api/role/
+          - name: "RoleBinding API"
+            url: https://perses.dev/perses/docs/api/rolebinding/
+      - type: reading
+        title: Summary
+        path: sections/section-030/module-01/course-04-summary.md
+
+      - type: reading
+        title: Question
+        path: sections/section-030/capstone/labs/lab-01/question.md
+      - type: lab
+        title: "Lock Down An Open Perses Server Capstone"
+        path: sections/section-030/capstone/labs/lab-01
+        difficulty: advanced
+        estimated_duration: 40m
+        topic: rbac
+        task_kind: troubleshooting
+        tags: [authentication, native-user, global-role, role, role-binding, config-file]
+        learning_goals:
+          - Turn on authentication and turn off sign-up through the Helm values
+          - Replace a user's global administrator binding with a role in one project
+          - Prove anonymous requests are refused and each user has exactly the intended access
+        resources:
+          - name: "Authentication"
+            url: https://perses.dev/perses/docs/concepts/authentication/
+          - name: "Authorization"
+            url: https://perses.dev/perses/docs/concepts/authorization/
+          - name: "Configuration: security"
+            url: https://perses.dev/perses/docs/configuration/configuration/

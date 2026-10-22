@@ -1,0 +1,56 @@
+# Provision A Project And A Global Datasource
+# Astrona graded lab. Schema: internal/config.LabConfig.
+
+metadata:
+  name: "ats-106-lab-020-01"
+  docs:
+    guide: "solution.md"
+    solution: "solution.md"
+    question: "question.md"
+    examQuestion: "question.md"
+    prerequisites: "prerequisites.md"
+
+bootstrap:
+  init:
+    - name: "install-perses"
+      description: "Installs Helm 3.22.1, percli v0.54.0, Prometheus, the tester pod and Perses v0.54.0 (chart 0.23.3)"
+      type: "file"
+      source: "bootstrap/01-install-perses.sh"
+    - name: "ats-106-lab-020-01-setup"
+      description: "Creates the starting state the task works from"
+      type: "file"
+      source: "bootstrap/02-seed-state.sh"
+  manifests:
+    - name: "lab-start"
+      description: "Prometheus and the tester pod (namespace observability)."
+      type: "file"
+      source: "manifests/lab-start.yaml"
+
+testing:
+  init:
+    - name: "wait-for-perses"
+      description: "Waits until Perses answers from the tester pod"
+      type: "file"
+      source: "testing/wait-for-perses.sh"
+    - name: "reference-solution"
+      description: "The remediation a correct learner performs; used by `astrona test`"
+      type: "file"
+      source: "solution/apply.sh"
+
+validation:
+  scripts:
+    - name: "validate-provisioning-mounted"
+      description: "Confirms the ConfigMap is mounted in a folder Perses provisions from"
+      type: "file"
+      source: "validation/validate-provisioning-mounted.sh"
+    - name: "validate-survives-restart"
+      description: "Confirms the project and the GlobalDatasource come back after a restart"
+      type: "file"
+      source: "validation/validate-survives-restart.sh"
+    - name: "validate-global-proxy"
+      description: "Confirms a query through the GlobalDatasource prometheus-global returns data"
+      type: "file"
+      source: "validation/validate-global-proxy.sh"
+
+teardown:
+  keepCluster: false

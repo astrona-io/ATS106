@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+# OS prep for the ATS106 section 010 module 01 playground (`ats-106-playground-010-01`).
+#
+# Environment preparation only. There is no task and no grading. This script:
+#   1. puts Helm and percli (pinned) on the PATH,
+#   2. makes perses.localtest.me resolve to the Perses Service inside the cluster,
+#   3. starts Prometheus and the tester pod,
+#   4. installs Perses v0.54.0 with the perses Helm chart 0.23.3.
+set -euo pipefail
+
+HELM_VERSION="3.22.1"
+PERSES_VERSION="0.54.0"
+PERSES_CHART_VERSION="0.23.3"
+PERSES_HOST="perses.localtest.me"
+
+BIN_DIR="/usr/local/bin"
+[ -w "$BIN_DIR" ] || BIN_DIR="$HOME/.local/bin"
+mkdir -p "$BIN_DIR"
+export PATH="$BIN_DIR:$PATH"
+
+OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
+ARCH="$(uname -m)"
+case "$ARCH" in x86_64) ARCH=amd64 ;; aarch64|arm64) ARCH=arm64 ;; esac
+WORK="$(mktemp -d)"
+trap 'rm -rf "$WORK"' EXIT
+
+# Pin the tools rather than accepting whatever is on the machine.
+have_helm=""
+command -v helm >/dev/null 2>&1 && have_helm=$(helm version --template '{{.Version}}' 2>/dev/null | sed 's/^v//')
+if [ "$have_helm" != "$HELM_VERSION" ]; then
+  echo "[playground] Downloading Helm ${HELM_VERSION} (${OS}/${ARCH})..."
+  curl -fsSL "https://get.helm.sh/helm-v${HELM_VERSION}-${OS}-${ARCH}.tar.gz" | tar -xz -C "$WORK"
+  install -m 0755 "$WORK/${OS}-${ARCH}/helm" "$BIN_DIR/helm"
+fi
+# percli ships in the Perses release archive, next to the server binary.
+have_percli=""
+command -v percli >/dev/null 2>&1 && have_percli=$(percli version 2>/dev/null | awk '/[Vv]ersion/{print $NF; exit}' | sed 's/^v//')
+if [ "$have_percli" != "$PERSES_VERSION" ]; then
+  echo "[playground] Downloading percli ${PERSES_VERSION} (${OS}/${ARCH})..."
+  curl -fsSL "https://github.com/perses/perses/releases/download/v${PERSES_VERSION}/perses_${PERSES_VERSION}_${OS}_${ARCH}.tar.gz" \
+    | tar -xz -C "$WORK" percli
+  install -m 0755 "$WORK/percli" "$BIN_DIR/percli"
+fi
+helm version --short
+percli version || true
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MANIFEST_DIR=""
+for candidate in "$SCRIPT_DIR/../manifests" "./manifests" "$SCRIPT_DIR/manifests"; do
+  [ -d "$candidate" ] && { MANIFEST_DIR="$candidate"; break; }
+done
+
+# One address for the reader's machine and the cluster: perses.localtest.me
+# resolves to 127.0.0.1 on the machine (reached through a port-forward), and
+# this CoreDNS block sends the same name to the Perses Service in the cluster.
+# The answer is rewritten back to the asked name: Go programs ignore DNS
+# answers whose name differs from the question.
+if ! kubectl -n kube-system get configmap coredns -o jsonpath='{.data.Corefile}' | grep -q "$PERSES_HOST"; then
+  echo "[playground] Adding the CoreDNS rewrite for ${PERSES_HOST}..."
+  COREFILE="$(kubectl -n kube-system get configmap coredns -o jsonpath='{.data.Corefile}' \
+    | awk '/^[[:space:]]*kubernetes / && !done {
+        print "    rewrite stop {"
+        print "        name regex perses\\.localtest\\.me perses.perses.svc.cluster.local"
+        print "        answer name perses\\.perses\\.svc\\.cluster\\.local perses.localtest.me"
+        print "    }"
+        done=1
+      } {print}')"
+  kubectl -n kube-system create configmap coredns --from-literal=Corefile="$COREFILE" \
+    --dry-run=client -o yaml | kubectl apply -f -
+  kubectl -n kube-system rollout restart deployment/coredns
+  kubectl -n kube-system rollout status deployment/coredns --timeout=120s
+fi
+
+# lab-start.yaml is also listed under bootstrap.manifests in config.yaml, so it
+# may already be applied. kubectl apply is idempotent.
+echo "[playground] Starting Prometheus and the tester pod..."
+kubectl apply -f "$MANIFEST_DIR/lab-start.yaml"
+kubectl -n observability rollout status deployment/prometheus --timeout=300s
+kubectl -n observability rollout status deployment/tester --timeout=300s
+
+echo "[playground] Installing Perses (chart ${PERSES_CHART_VERSION})..."
+helm repo add perses https://perses.github.io/helm-charts >/dev/null 2>&1 || true
+helm repo update perses >/dev/null
+helm upgrade --install perses perses/perses --version "$PERSES_CHART_VERSION" \
+  --namespace perses --create-namespace \
+  --values "$MANIFEST_DIR/perses-values.yaml" \
+  --wait --timeout 10m
+
+echo "[playground] Ready."
+kubectl -n perses get pods
+echo "[playground] Start the port-forward in a second terminal before you use percli or the browser:"
+echo "  kubectl -n perses port-forward svc/perses 8080:8080"
+echo "  then open http://perses.localtest.me:8080"

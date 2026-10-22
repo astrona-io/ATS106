@@ -1,0 +1,30 @@
+# Authentication on, with native users loaded from the ConfigMap
+# perses-provisioning. Lab-only encryption key (exactly 32 bytes).
+config:
+  security:
+    enable_auth: true
+    authentication:
+      disable_sign_up: true
+      providers:
+        enable_native: true
+    authorization:
+      provider:
+        native:
+          guest_permissions:
+            - actions: ["read"]
+              scopes: ["*"]
+  provisioning:
+    interval: 1m
+    folders:
+      - /etc/perses/provisioning-files
+envVars:
+  - name: PERSES_SECURITY_ENCRYPTION_KEY
+    value: "lab-only-encryption-key-32-bytes"
+volumes:
+  - name: provisioning-files
+    configMap:
+      name: perses-provisioning
+volumeMounts:
+  - name: provisioning-files
+    mountPath: /etc/perses/provisioning-files
+    readOnly: true

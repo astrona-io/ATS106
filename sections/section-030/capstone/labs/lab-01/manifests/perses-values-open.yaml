@@ -1,0 +1,21 @@
+# A server that was set up in a hurry: users are provisioned, but
+# authentication is off and anyone could sign up once it is turned on.
+config:
+  security:
+    enable_auth: false
+    authentication:
+      disable_sign_up: false
+      providers:
+        enable_native: true
+  provisioning:
+    interval: 1m
+    folders:
+      - /etc/perses/provisioning-files
+volumes:
+  - name: provisioning-files
+    configMap:
+      name: perses-provisioning
+volumeMounts:
+  - name: provisioning-files
+    mountPath: /etc/perses/provisioning-files
+    readOnly: true
