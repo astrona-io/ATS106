@@ -148,6 +148,12 @@ helm_upgrade_perses() {
     --namespace perses "${args[@]}" --wait --timeout 10m >/dev/null
 }
 
+# dana-admin is provisioned: take it out of the ConfigMap first, or
+# provisioning brings it back every minute.
+kubectl -n perses get configmap perses-provisioning -o json \
+  | tester jq '.data["admin.json"] |= (fromjson | map(select(.metadata.name != "dana-admin")) | tojson)' \
+  | kubectl apply -f - >/dev/null
+
 manifests="$(manifest_dir)"
 values_file="$(mktemp)"
 cat > "$values_file" <<'VALUES'
@@ -159,11 +165,9 @@ config:
       providers:
         enable_native: true
     authorization:
-      provider:
-        native:
-          guest_permissions:
-            - actions: ["read"]
-              scopes: ["*"]
+      guest_permissions:
+        - actions: ["read"]
+          scopes: ["*"]
 envVars:
   - name: PERSES_SECURITY_ENCRYPTION_KEY
     value: "lab-only-encryption-key-32-bytes"

@@ -149,12 +149,16 @@ helm_upgrade_perses() {
     --namespace perses "${args[@]}" --wait --timeout 10m >/dev/null
 }
 
-wait_for_perses
+# Someone gave dana the global administrator role "to get her started". With
+# authentication off, Perses v0.54.0 serves no role or role binding endpoints
+# (GET answers 404, POST 405), so the binding goes into the provisioning
+# ConfigMap, next to the binding for admin.
+kubectl -n perses get configmap perses-provisioning -o json \
+  | tester jq '.data["admin.json"] |= (fromjson + [{"kind": "GlobalRoleBinding", "metadata": {"name": "dana-admin"}, "spec": {"role": "admin", "subjects": [{"kind": "User", "name": "dana"}]}}] | tojson)' \
+  | kubectl apply -f - >/dev/null
+restart_perses
 for _ in $(seq 1 30); do
   [ "$(perses_status GET /api/v1/projects/inventory)" = "200" ] && break
   sleep 3
 done
-# Someone gave dana the global administrator role "to get her started".
-upsert /api/v1/globalrolebindings dana-admin \
-  '{"kind":"GlobalRoleBinding","metadata":{"name":"dana-admin"},"spec":{"role":"admin","subjects":[{"kind":"User","name":"dana"}]}}'
 echo "[capstone] The server is open: no authentication, sign-up allowed, dana is a global administrator."

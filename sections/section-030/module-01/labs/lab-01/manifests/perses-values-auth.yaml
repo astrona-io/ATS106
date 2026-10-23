@@ -8,11 +8,9 @@ config:
       providers:
         enable_native: true
     authorization:
-      provider:
-        native:
-          guest_permissions:
-            - actions: ["read"]
-              scopes: ["*"]
+      guest_permissions:
+        - actions: ["read"]
+          scopes: ["*"]
   provisioning:
     interval: 1m
     folders:

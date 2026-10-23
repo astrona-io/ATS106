@@ -89,11 +89,9 @@ config:
       providers:
         enable_native: true
     authorization:
-      provider:
-        native:
-          guest_permissions:
-            - actions: ["read"]
-              scopes: ["*"]
+      guest_permissions:
+        - actions: ["read"]
+          scopes: ["*"]
   provisioning:
     interval: 1m
     folders:
@@ -111,7 +109,7 @@ volumeMounts:
     readOnly: true
 ```
 
-Each setting has one job. `enable_auth` requires a token on every request. `enable_native` lets Perses check users itself. `disable_sign_up` removes the endpoint that lets anybody create a user, so only administrators create users. `guest_permissions` gives every logged-in user `read` on every kind, so people can view dashboards without a role. The encryption key is exactly 32 bytes and goes through `envVars`, which the chart stores in a Secret instead of the ConfigMap.
+Each setting has one job. `enable_auth` requires a token on every request. `enable_native` lets Perses check users itself. `disable_sign_up` removes the endpoint that lets anybody create a user, so only administrators create users. `guest_permissions` gives every logged-in user `read` on every kind, so people can view dashboards without a role. Perses v0.54.0 also reads this list at `authorization.provider.native.guest_permissions` and logs a deprecation warning for the short form, but the Helm chart 0.23.3 refuses any value under `authorization` except `guest_permissions` and `check_latest_update_interval`, so the short form is the one that installs. The encryption key is exactly 32 bytes and goes through `envVars`, which the chart stores in a Secret instead of the ConfigMap.
 
 Apply both files:
 

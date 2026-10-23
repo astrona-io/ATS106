@@ -11,14 +11,19 @@ helm -n perses get values perses
 kubectl -n perses get configmap perses -o jsonpath='{.data.config\.yaml}'
 ```
 
-`security.enable_auth` is `false` and `authentication.disable_sign_up` is `false`. The provisioning folder and the mounted ConfigMap are correct, so the users and the `admin` role already exist. With the port-forward running, look for global bindings; authentication is still off, so no login is needed yet:
+`security.enable_auth` is `false` and `authentication.disable_sign_up` is `false`. The provisioning folder and the mounted ConfigMap are correct, so the users and the `admin` role already exist. While authentication is off, Perses serves no role or role binding endpoints: `percli get globalrolebindings` finds nothing to read. The global bindings are in the provisioning ConfigMap, so read them there:
 
 ```sh
-percli login http://perses.localtest.me:8080
-percli get globalrolebindings
+kubectl -n perses get configmap perses-provisioning -o jsonpath='{.data.admin\.json}'
 ```
 
-Besides `admin`, there is a binding `dana-admin` that gives the `GlobalRole` `admin` to `dana`. It was created through the API, not provisioned, so deleting it is permanent.
+Besides `admin`, there is a binding `dana-admin` that gives the `GlobalRole` `admin` to `dana`. Perses provisions the files in this ConfigMap again every minute (`provisioning.interval: 1m`), so a binding that is only deleted through the API comes back. Remove it from the ConfigMap. Open the ConfigMap in your editor:
+
+```sh
+kubectl -n perses edit configmap perses-provisioning
+```
+
+In `admin.json`, delete the object whose `metadata.name` is `dana-admin`, keep the `GlobalRole` `admin` and its binding for `admin`, and save. Then read `admin.json` again to check that only those two objects are left.
 
 ## Step 2: Turn on authentication and turn off sign-up
 
@@ -39,11 +44,9 @@ config:
       providers:
         enable_native: true
     authorization:
-      provider:
-        native:
-          guest_permissions:
-            - actions: ["read"]
-              scopes: ["*"]
+      guest_permissions:
+        - actions: ["read"]
+          scopes: ["*"]
 envVars:
   - name: PERSES_SECURITY_ENCRYPTION_KEY
     value: "lab-only-encryption-key-32-bytes"
@@ -56,7 +59,7 @@ helm -n perses upgrade perses perses/perses --version 0.23.3 \
   -f perses-values-current.yaml -f perses-values-locked.yaml --wait
 ```
 
-The pod restarts. Provisioning loads the users, the `admin` role and binding, and the projects again. The `dana-admin` binding was not provisioned, so it is gone with the old database; check it anyway in step 3. The guest permissions keep `read` on every kind for logged-in users.
+The pod restarts with an empty database. Provisioning loads the users, the `admin` role and binding, and the projects again from the ConfigMap, now without `dana-admin`; check it in step 3. The guest permissions keep `read` on every kind for logged-in users.
 
 ## Step 3: Remove any global access for dana
 
@@ -67,7 +70,7 @@ percli login http://perses.localtest.me:8080 --username admin --password perses-
 percli get globalrolebindings
 ```
 
-If `dana-admin` is still listed, delete it:
+If `dana-admin` is still listed, the ConfigMap still holds it: remove it there as in step 1, then delete it:
 
 ```sh
 percli delete globalrolebinding dana-admin
