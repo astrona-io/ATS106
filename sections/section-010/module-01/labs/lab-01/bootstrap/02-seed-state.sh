@@ -104,8 +104,10 @@ restart_perses() {
 
 # record_baseline KEY VALUE / baseline KEY: values the graders compare against.
 record_baseline() {
-  kubectl -n perses create configmap lab-baseline --dry-run=client -o yaml \
-    --from-literal="$1=$2" | kubectl apply -f - >/dev/null 2>&1 || true
+  # Create the ConfigMap only once; applying a one-key ConfigMap would erase
+  # the values recorded before it.
+  kubectl -n perses get configmap lab-baseline >/dev/null 2>&1 || \
+    kubectl -n perses create configmap lab-baseline >/dev/null
   kubectl -n perses patch configmap lab-baseline --type merge -p "{\"data\":{\"$1\":\"$2\"}}" >/dev/null
 }
 baseline() { kubectl -n perses get configmap lab-baseline -o jsonpath="{.data.$1}"; }
