@@ -9,7 +9,6 @@ metadata:
     question: "question.md"
     examQuestion: "question.md"
     prerequisites: "prerequisites.md"
-
 bootstrap:
   init:
     - name: "install-perses"
@@ -25,7 +24,6 @@ bootstrap:
       description: "Prometheus and the tester pod (namespace observability)."
       type: "file"
       source: "manifests/lab-start.yaml"
-
 testing:
   init:
     - name: "wait-for-perses"
@@ -36,7 +34,6 @@ testing:
       description: "The remediation a correct learner performs; used by `astrona test`"
       type: "file"
       source: "solution/apply.sh"
-
 validation:
   scripts:
     - name: "validate-auth-on"
@@ -59,6 +56,11 @@ validation:
       description: "Confirms dana cannot create a dashboard in billing"
       type: "file"
       source: "validation/validate-dana-not-billing.sh"
-
 teardown:
   keepCluster: false
+runtime:
+  kind:
+    preloadImages:
+      - docker.io/persesdev/perses:v0.54.0
+      - nicolaka/netshoot:v0.13
+      - prom/prometheus:v3.15.1
